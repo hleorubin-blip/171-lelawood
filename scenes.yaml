@@ -1,0 +1,183 @@
+- id: '1772047230400'
+  name: Good Night
+  entities:
+    light.adler:
+      effect_list:
+      - 'off'
+      - candle
+      supported_color_modes:
+      - brightness
+      effect:
+      color_mode:
+      brightness:
+      mode: normal
+      dynamics: none
+      friendly_name: Adler
+      supported_features: 44
+      state: 'off'
+    light.bedroom:
+      supported_color_modes:
+      - brightness
+      color_mode:
+      brightness:
+      is_hue_group: true
+      hue_scenes: []
+      hue_type: room
+      lights:
+      - Kyle
+      - Ceramic
+      - Leo
+      - Wood floor lamp
+      - Pagoda
+      entity_id:
+      - light.wood_floor_lamp
+      - light.leo_2
+      - light.ceramic
+      - light.kyle_2
+      - light.leo
+      - light.pagoda
+      - light.kyle
+      dynamics: false
+      icon: mdi:lightbulb-group
+      friendly_name: Bedroom
+      supported_features: 40
+      state: 'off'
+    light.uplight:
+      supported_color_modes:
+      - onoff
+      color_mode:
+      friendly_name: Uplight
+      supported_features: 0
+      state: 'off'
+    light.sconces:
+      effect_list:
+      - candle
+      - 'off'
+      supported_color_modes:
+      - brightness
+      effect:
+      color_mode:
+      brightness:
+      entity_id:
+      - light.hue_white_lamp_10
+      - light.hue_white_lamp_11
+      - light.hue_white_lamp_12
+      - light.hue_white_lamp_13
+      - light.hue_white_lamp_14
+      icon: mdi:lightbulb-group
+      friendly_name: Sconces
+      supported_features: 44
+      state: 'off'
+    light.dining_room_lamps:
+      effect_list:
+      - candle
+      - 'off'
+      supported_color_modes:
+      - brightness
+      effect:
+      color_mode:
+      brightness:
+      entity_id:
+      - light.big_lamp
+      - light.small_lamp
+      - light.hue_white_lamp_15
+      icon: mdi:lightbulb-group
+      friendly_name: Dining Room Lamps
+      supported_features: 44
+      state: 'off'
+    light.d26hd:
+      supported_color_modes:
+      - brightness
+      color_mode:
+      brightness:
+      friendly_name: Kitchen Overhead
+      supported_features: 32
+      state: 'off'
+    input_boolean.input_boolean_good_night:
+      editable: true
+      icon: mdi:weather-night
+      friendly_name: input_boolean.good_night
+      state: 'on'
+    light.bar:
+      supported_color_modes:
+      - onoff
+      color_mode:
+      friendly_name: Bar
+      supported_features: 0
+      state: 'off'
+    light.back_flood:
+      supported_color_modes:
+      - brightness
+      color_mode: brightness
+      brightness: 255
+      friendly_name: Back Flood
+      supported_features: 32
+      state: 'on'
+    light.back_porch:
+      supported_color_modes:
+      - brightness
+      color_mode: brightness
+      brightness: 255
+      friendly_name: Back Porch
+      supported_features: 32
+      state: 'on'
+    light.desk_lamp:
+      supported_color_modes:
+      - onoff
+      color_mode:
+      friendly_name: Desk Lamp
+      supported_features: 0
+      state: 'off'
+    light.fixture:
+      supported_color_modes:
+      - brightness
+      color_mode:
+      brightness:
+      friendly_name: Fixture
+      supported_features: 32
+      state: 'off'
+    light.front_porch:
+      supported_color_modes:
+      - brightness
+      color_mode: brightness
+      brightness: 166
+      friendly_name: Front Porch
+      supported_features: 32
+      state: 'on'
+    light.front_flood:
+      supported_color_modes:
+      - brightness
+      color_mode: brightness
+      brightness: 189
+      friendly_name: Front Flood
+      supported_features: 32
+      state: 'on'
+  metadata:
+    light.adler:
+      entity_only: true
+    light.bedroom:
+      entity_only: true
+    light.uplight:
+      entity_only: true
+    light.sconces:
+      entity_only: true
+    light.dining_room_lamps:
+      entity_only: true
+    light.d26hd:
+      entity_only: true
+    input_boolean.input_boolean_good_night:
+      entity_only: true
+    light.bar:
+      entity_only: true
+    light.back_flood:
+      entity_only: true
+    light.back_porch:
+      entity_only: true
+    light.desk_lamp:
+      entity_only: true
+    light.fixture:
+      entity_only: true
+    light.front_porch:
+      entity_only: true
+    light.front_flood:
+      entity_only: true

@@ -1,0 +1,39 @@
+# Secrets and credentials
+secrets.yaml
+known_devices.yaml
+
+# Database
+*.db
+*.db-*
+home-assistant_v2.db*
+
+# Logs
+*.log
+*.log.*
+home-assistant.log*
+OZW_Log.txt
+
+# Storage and runtime state
+.storage/
+.cloud/
+.uuid
+.HA_VERSION
+.google.token
+
+# Backups
+backups/
+*.tar
+*.tar.gz
+
+# tts cache
+tts/
+deps/
+
+# OS junk
+.DS_Store
+Thumbs.db
+__pycache__/
+*.pyc
+
+# Editor settings
+.vscode/

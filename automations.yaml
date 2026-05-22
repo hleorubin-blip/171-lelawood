@@ -1,0 +1,538 @@
+- id: '1772501120403'
+  alias: Main Overhead Dynamic
+  description: ''
+  use_blueprint:
+    path: Blackshome/sensor-light.yaml
+    input:
+      motion_trigger:
+      - binary_sensor.living_room_motion_devices
+      light_switch:
+        entity_id:
+        - light.entry_overhead
+        - light.sitting_overhead
+        - light.sliding_door_overhead
+        - light.dining_overhead
+      time_delay: 30
+      include_dynamic_lighting: enable_lux_controled_brightness_inv
+      dynamic_lighting_lux_sensor: sensor.presence_sensor_fp2_0fdb_light_sensor_light_level
+      dynamic_lighting_max_lux: 380
+      dynamic_lighting_sun_elevation_start_rising: -3
+      dynamic_lighting_min_lux: 40
+      dynamic_lighting_min_brightness: 20
+      include_bypass:
+      - bypass_enabled_turn_off
+      motion_bypass_lights_off:
+      - input_boolean.input_boolean_away_mode
+      - input_boolean.input_boolean_good_night
+      include_sun: sun_disabled
+      sun_elevation: 5
+      dynamic_lighting_sun_elevation_end_falling: 5
+      sun_elevation_rising: 5
+      after_time: 05:00:00
+      include_time: time_enabled
+      before_time: '17:30:00'
+- id: '1772504308896'
+  alias: Main Lamps
+  description: ''
+  use_blueprint:
+    path: Blackshome/sensor-light.yaml
+    input:
+      motion_trigger:
+      - binary_sensor.living_room_motion_devices
+      light_switch:
+        entity_id:
+        - light.brown_lamp
+        - light.silver_lamp
+        - light.guzzini
+        - light.parquet_lamp
+        - light.square_lamp
+        - light.thin_lamp
+        - light.big_lamp
+        - light.hue_white_lamp_15
+        - light.small_lamp
+        - light.uplight
+        - light.desk_lamp
+      time_delay: 15
+      include_dynamic_lighting: disable_dynamic_lighting
+      dynamic_lighting_max_lux: 50
+      dynamic_lighting_min_lux: 30
+      dynamic_lighting_min_brightness: 30
+      include_sun: sun_disabled
+      sun_elevation_rising: -4
+      sun_elevation: 5
+      include_bypass:
+      - bypass_enabled_turn_off
+      motion_bypass_lights_off:
+      - input_boolean.input_boolean_away_mode
+      include_light_control:
+      - use_brightness
+      light_brightness: 100
+      include_night_glow_light_control:
+      - use_brightness
+      include_night_glow: night_glow_enabled
+      include_night_light_control:
+      - use_brightness
+      - if_lights_are_on_adjust_when_crossing_over
+      night_time_delay: 16.5
+      include_night_lights: night_lights_enabled
+      night_lights_entity_state: []
+      night_lights_conditions:
+      - sun_enabled
+      night_lights:
+        entity_id:
+        - light.parquet_lamp
+        - light.silver_lamp
+        - light.guzzini
+        - light.square_lamp
+        - light.thin_lamp
+        - light.brown_lamp
+        - light.hue_white_lamp_15
+        - light.big_lamp
+        - light.small_lamp
+        - light.uplight
+        - light.desk_lamp
+      night_light_brightness: 65
+      night_glow_lights:
+        entity_id:
+        - light.thin_lamp
+        - light.square_lamp
+        - light.silver_lamp
+        - light.brown_lamp
+        - light.guzzini
+        - light.parquet_lamp
+        - light.big_lamp
+        - light.small_lamp
+        - light.hue_white_lamp_15
+      night_glow_light_brightness: 34
+      dynamic_lighting_lux_sensor: sensor.presence_sensor_fp2_0fdb_light_sensor_light_level
+      include_state_control: state_control_enabled
+      state_control_entity: input_boolean.input_boolean_good_night
+      night_lights_sun_elevation: 2
+      light_transition_on: 0
+      light_transition_off: 2
+      night_light_transition_on: 0
+      night_light_transition_off: 20
+      night_glow_light_transition_off: 8
+      night_glow_light_transition_on: 0
+      dim_before_off_time_delay: 60
+      night_lights_sun_elevation_rising: 1
+- id: '1772633218168'
+  alias: Sitting Room Lamps
+  description: ''
+  triggers:
+  - trigger: time
+    at: 06:00:00
+    weekday:
+    - sun
+    - mon
+    - tue
+    - wed
+    - thu
+    - fri
+    - sat
+    id: morning_on
+    alias: morning_on
+  - trigger: state
+    entity_id:
+    - scene.good_night
+    to:
+    - 'on'
+    alias: goodnight_off
+    id: goodnight_off
+  - trigger: state
+    entity_id:
+    - input_boolean.input_boolean_away_mode
+    to:
+    - 'on'
+    alias: away_off
+    id: away_off
+  - trigger: state
+    entity_id:
+    - input_boolean.input_boolean_away_mode
+    to:
+    - 'off'
+    alias: arrive_on
+    id: arrive_on
+  conditions: []
+  actions:
+  - choose:
+    - conditions:
+      - condition: trigger
+        id:
+        - morning_on
+        - arrive_on
+      sequence:
+      - type: turn_on
+        device_id: 75ebeb25323fff8d723bb7cda31b6774
+        entity_id: 2f130209bc3f31d19ad65dc3f96ca62c
+        domain: light
+      - type: turn_on
+        device_id: 0f667372067b6df6f356cc51721e0117
+        entity_id: 2cf48f56e56c57bf834a7608194debf6
+        domain: light
+  - choose:
+    - conditions:
+      - condition: trigger
+        id:
+        - goodnight_off
+        - away_off
+      sequence:
+      - type: turn_off
+        device_id: 75ebeb25323fff8d723bb7cda31b6774
+        entity_id: 2f130209bc3f31d19ad65dc3f96ca62c
+        domain: light
+      - type: turn_off
+        device_id: 0f667372067b6df6f356cc51721e0117
+        entity_id: 2cf48f56e56c57bf834a7608194debf6
+        domain: light
+  mode: single
+- id: '1772644436901'
+  alias: Chandelier | Day
+  description: ''
+  use_blueprint:
+    path: Blackshome/sensor-light.yaml
+    input:
+      motion_trigger:
+      - binary_sensor.living_room_motion_devices
+      light_switch:
+        entity_id: light.chandelier
+      time_delay: 15
+      include_dynamic_lighting: disable_dynamic_lighting
+      dynamic_lighting_max_lux: 300
+      dynamic_lighting_min_lux: 10
+      dynamic_lighting_min_brightness: 30
+      include_sun: sun_disabled
+      sun_elevation_rising: -4
+      sun_elevation: 5
+      include_bypass:
+      - bypass_enabled_turn_off
+      motion_bypass_lights_off:
+      - input_boolean.input_boolean_away_mode
+      include_light_control:
+      - use_brightness
+      light_brightness: 24
+      include_night_glow_light_control:
+      - use_brightness
+      include_night_glow: night_glow_enabled
+      include_night_light_control:
+      - use_brightness
+      - if_lights_are_on_adjust_when_crossing_over
+      night_time_delay: 1
+      include_night_lights: night_lights_enabled
+      night_lights_entity_state: []
+      night_lights_conditions:
+      - sun_enabled
+      night_lights:
+        entity_id: light.chandelier
+      night_light_brightness: 21
+      night_glow_lights:
+        entity_id: light.chandelier
+      night_glow_light_brightness: 19
+      dynamic_lighting_lux_sensor: sensor.presence_sensor_fp2_0fdb_light_sensor_light_level
+      include_state_control: state_control_enabled
+      state_control_entity: input_boolean.input_boolean_good_night
+      night_lights_sun_elevation: 3
+      include_time: time_enabled
+      after_time: 06:00:00
+- id: '1772651741715'
+  alias: Kitchen Overhead
+  description: ''
+  use_blueprint:
+    path: Blackshome/sensor-light.yaml
+    input:
+      motion_trigger:
+      - binary_sensor.living_room_motion_devices
+      light_switch:
+        entity_id: light.d26hd
+      time_delay: 30
+      include_dynamic_lighting: enable_lux_controled_brightness_inv
+      dynamic_lighting_lux_sensor: sensor.presence_sensor_fp2_0fdb_light_sensor_light_level
+      dynamic_lighting_max_lux: 180
+      dynamic_lighting_sun_elevation_start_rising: -3
+      dynamic_lighting_min_lux: 20
+      dynamic_lighting_min_brightness: 40
+      include_bypass:
+      - bypass_enabled_turn_off
+      motion_bypass_lights_off:
+      - input_boolean.input_boolean_away_mode
+      - input_boolean.input_boolean_good_night
+      include_sun: sun_disabled
+      sun_elevation: 5
+      dynamic_lighting_sun_elevation_end_falling: 5
+      sun_elevation_rising: 5
+      after_time: 05:00:00
+      include_time: time_enabled
+      before_time: '19:00:00'
+      light_transition_on: 0
+- id: '1772764949041'
+  alias: Gym lights
+  description: ''
+  use_blueprint:
+    path: homeassistant/motion_light.yaml
+    input:
+      motion_entity: binary_sensor.gym_motion
+      light_target:
+        entity_id: light.gym
+      no_motion_wait: 3600
+- id: '1773020847032'
+  alias: Lamps Nightlight
+  description: ''
+  use_blueprint:
+    path: Blackshome/sensor-light.yaml
+    input:
+      motion_trigger:
+      - binary_sensor.living_room_motion_devices
+      light_switch:
+        entity_id:
+        - light.brown_lamp
+        - light.silver_lamp
+        - light.guzzini
+        - light.parquet_lamp
+        - light.square_lamp
+        - light.thin_lamp
+        - light.big_lamp
+        - light.hue_white_lamp_15
+        - light.small_lamp
+      time_delay: 0.5
+      include_dynamic_lighting: disable_dynamic_lighting
+      dynamic_lighting_max_lux: 500
+      dynamic_lighting_min_lux: 20
+      dynamic_lighting_min_brightness: 70
+      include_sun: sun_disabled
+      sun_elevation_rising: -4
+      sun_elevation: 5
+      include_bypass:
+      - bypass_enabled_turn_off
+      motion_bypass_lights_off:
+      - input_boolean.input_boolean_away_mode
+      include_light_control:
+      - use_brightness
+      - use_transition
+      light_brightness: 2
+      include_night_glow_light_control:
+      - use_brightness
+      include_night_glow: night_glow_enabled
+      include_night_light_control:
+      - use_brightness
+      - if_lights_are_on_adjust_when_crossing_over
+      night_time_delay: 1
+      include_night_lights: night_lights_disabled
+      night_lights_entity_state: []
+      night_lights_conditions:
+      - sun_enabled
+      night_lights:
+        entity_id:
+        - light.parquet_lamp
+        - light.silver_lamp
+        - light.guzzini
+        - light.square_lamp
+        - light.thin_lamp
+        - light.brown_lamp
+        - light.hue_white_lamp_15
+        - light.big_lamp
+        - light.small_lamp
+      night_light_brightness: 65
+      night_glow_lights:
+        entity_id:
+        - light.thin_lamp
+        - light.square_lamp
+        - light.silver_lamp
+        - light.brown_lamp
+        - light.guzzini
+        - light.parquet_lamp
+        - light.big_lamp
+        - light.small_lamp
+        - light.hue_white_lamp_15
+      night_glow_light_brightness: 34
+      dynamic_lighting_lux_sensor: sensor.presence_sensor_fp2_0fdb_light_sensor_light_level
+      include_state_control: state_control_enabled
+      state_control_entity: input_boolean.input_boolean_good_night
+      night_lights_sun_elevation: 4
+      light_transition_on: 1
+      light_transition_off: 3
+      night_light_transition_on: 0
+      night_light_transition_off: 20
+      night_glow_light_transition_off: 8
+      night_glow_light_transition_on: 0
+      state_control_activation_state: 'on'
+- id: '1773021354415'
+  alias: Kitchen Nightlight
+  description: ''
+  use_blueprint:
+    path: Blackshome/sensor-light.yaml
+    input:
+      motion_trigger:
+      - binary_sensor.kitchen_occupancy
+      light_switch:
+        entity_id:
+        - light.fixture
+        - light.bar
+      time_delay: 1
+      include_dynamic_lighting: disable_dynamic_lighting
+      dynamic_lighting_max_lux: 500
+      dynamic_lighting_min_lux: 20
+      dynamic_lighting_min_brightness: 70
+      include_sun: sun_disabled
+      sun_elevation_rising: -4
+      sun_elevation: 5
+      include_bypass:
+      - bypass_enabled_turn_off
+      motion_bypass_lights_off:
+      - input_boolean.input_boolean_away_mode
+      include_light_control:
+      - use_brightness
+      - use_transition
+      light_brightness: 50
+      include_night_glow_light_control:
+      - use_brightness
+      include_night_glow: night_glow_disabled
+      include_night_light_control:
+      - use_brightness
+      - if_lights_are_on_adjust_when_crossing_over
+      night_time_delay: 1
+      include_night_lights: night_lights_disabled
+      night_lights_entity_state: []
+      night_lights_conditions:
+      - sun_enabled
+      night_lights:
+        entity_id:
+        - light.parquet_lamp
+        - light.silver_lamp
+        - light.guzzini
+        - light.square_lamp
+        - light.thin_lamp
+        - light.brown_lamp
+        - light.hue_white_lamp_15
+        - light.big_lamp
+        - light.small_lamp
+      night_light_brightness: 10
+      night_glow_lights:
+        entity_id:
+        - light.thin_lamp
+        - light.square_lamp
+        - light.silver_lamp
+        - light.brown_lamp
+        - light.guzzini
+        - light.parquet_lamp
+        - light.big_lamp
+        - light.small_lamp
+        - light.hue_white_lamp_15
+      night_glow_light_brightness: 34
+      dynamic_lighting_lux_sensor: sensor.presence_sensor_fp2_0fdb_light_sensor_light_level
+      include_state_control: state_control_enabled
+      state_control_entity: input_boolean.input_boolean_good_night
+      night_lights_sun_elevation: 4
+      light_transition_on: 1
+      light_transition_off: 4
+      night_light_transition_on: 0
+      night_light_transition_off: 20
+      night_glow_light_transition_off: 8
+      night_glow_light_transition_on: 0
+      state_control_activation_state: 'on'
+- id: '1773183118204'
+  alias: Good Morning - Retrigger Daytime Lamps
+  description: Forces daytime lamps to re-evaluate when good_night flips OFF
+  triggers:
+  - trigger: state
+    entity_id:
+    - input_boolean.input_boolean_good_night
+    from:
+    - 'on'
+    to:
+    - 'off'
+  conditions: []
+  actions:
+  - action: automation.trigger
+    data:
+      skip_condition: false
+    target:
+      entity_id: automation.main_lamps_dynamic_n
+  mode: single
+- id: '1773184004510'
+  alias: Good Morning - 5AM
+  description: Flips good_night OFF at 5 AM to end nightlight mode
+  triggers:
+  - trigger: time
+    at: 05:00:00
+  conditions: []
+  actions:
+  - action: input_boolean.turn_off
+    target:
+      entity_id: input_boolean.input_boolean_good_night
+  mode: single
+- id: '1773184612242'
+  alias: Bedroom Wake Up - Weekdays
+  description: Gradual bedroom wake-up light Mon-Fri
+  triggers:
+  - trigger: time
+    at: 04:50:00
+  conditions:
+  - condition: time
+    weekday:
+    - mon
+    - tue
+    - wed
+    - thu
+    - fri
+  actions:
+  - action: light.turn_on
+    target:
+      entity_id:
+      - light.leo_bedside
+      - light.kyle_bedside
+      - light.pagoda
+      - light.ceramic
+    data:
+      brightness_pct: 1
+  - action: light.turn_on
+    target:
+      entity_id:
+      - light.leo_bedside
+      - light.kyle_bedside
+      - light.pagoda
+      - light.ceramic
+    data:
+      brightness_pct: 30
+      transition: 600
+  - delay: 00:10:00
+  - action: light.turn_on
+    target:
+      entity_id: light.levds_dimmer_c766
+    data:
+      brightness_pct: 20
+      transition: 30
+  - delay: 01:25:00
+  - action: light.turn_on
+    target:
+      entity_id:
+      - light.leo_bedside
+      - light.kyle_bedside
+      - light.pagoda
+      - light.ceramic
+    data:
+      brightness_pct: 60
+      transition: 300
+  - action: light.turn_on
+    target:
+      entity_id: light.levds_dimmer_c766
+    data:
+      brightness_pct: 50
+      transition: 300
+  - delay: 00:15:00
+  - action: light.turn_on
+    target:
+      entity_id:
+      - light.leo_bedside
+      - light.kyle_bedside
+      - light.pagoda
+      - light.ceramic
+    data:
+      brightness_pct: 80
+      transition: 300
+  - action: light.turn_on
+    target:
+      entity_id: light.levds_dimmer_c766
+    data:
+      brightness_pct: 60
+      transition: 300
+  mode: single
