@@ -133,9 +133,10 @@ Chosen over Derek Seaman's blueprint and other alternatives. The blueprint handl
 
 ### Good Morning
 - `automation.good_morning_5am` — fires at 5 AM, flips `good_night` OFF, then triggers retrigger
-- `automation.good_morning_retrigger_daytime_lamps` — currently targets only `automation.main_lamps_dynamic_n`
-- **Known gap:** `automation.main_overhead_dynamic` is not in the retrigger and needs to be added
-- **Why retriggers exist:** The FP2 reports continuous presence, never produces discrete off→on edges, so the daytime blueprint instance won't re-trigger after `good_night` flips OFF without an explicit `automation.trigger` call
+- `automation.good_morning_retrigger_daytime_lamps` — targets `automation.main_lamps_dynamic_n`
+- **Why the retrigger exists:** The FP2 reports continuous presence and never produces discrete off→on edges. State_control-gated automations (like Main Lamps) won't re-fire when `good_night` flips OFF without an explicit `automation.trigger` call.
+- **Why overheads don't need it:** Time-gated automations (like Main Overhead Dynamic, with `after_time: 05:00:00`) get re-evaluated by Blacky's blueprint internal time trigger at the configured `after_time`. No retrigger needed.
+- **Rule for future automations:** Add to the retrigger only if the automation is state_control-gated AND has no `after_time`/`before_time` fallback.
 
 ### Bedroom wake-up
 - Separate standalone automation (`Bedroom Wake Up - Weekdays`) — gradual ramp, weekdays only
@@ -169,6 +170,7 @@ Silver lamp excluded. Den deferred.
 5. **Never use outdoor lux sensors in blueprint lux fields.** Use indoor sensors only.
 6. **Never add automations to "fix" what the blueprint already handles internally.** Bypass switches handle overrides. Whole-home scenes are reserved for Good Night and Away.
 7. **Never assume `input_boolean.input_boolean_good_night` is an error** — the double-prefix is the actual entity ID.
+8. **Never add time-gated automations to the Good Morning retrigger.** Blacky's blueprint handles their morning transition via its internal time trigger. Only state_control-gated automations with no time fallback need the retrigger.
 
 ---
 
@@ -189,10 +191,9 @@ Silver lamp excluded. Den deferred.
 ### Known active issues
 | # | Issue | Status |
 |---|---|---|
-| 1 | Good Morning retrigger missing `automation.main_overhead_dynamic` | Confirmed gap, fix pending |
-| 2 | Six Leviton dimmers went unavailable after a power surge (same Matter commissioning batch) | Resolution: verify WiFi via Deco app, breaker cycle if offline; Matter re-interview not in UI |
-| 3 | Kitchen automation incorrectly references living room FP2's lux sensor | Needs second FP2 in kitchen |
-| 4 | Existing retrigger targets `automation.main_lamps_dynamic_n` — verify this entity_id still resolves (legacy from rename?) | Needs verification |
+| 1 | Six Leviton dimmers went unavailable after a power surge (same Matter commissioning batch) | Resolution: verify WiFi via Deco app, breaker cycle if offline; Matter re-interview not in UI |
+| 2 | Kitchen automation incorrectly references living room FP2's lux sensor | Needs second FP2 in kitchen |
+| 3 | Existing retrigger targets `automation.main_lamps_dynamic_n` — verify this entity_id still resolves (legacy from rename?) | Needs verification |
 
 ### Deferred
 - Den configuration
@@ -248,16 +249,15 @@ Silver lamp excluded. Den deferred.
 
 ## Roadmap (in rough order)
 
-1. Add `automation.main_overhead_dynamic` to Good Morning retrigger targets
-2. Verify `automation.main_lamps_dynamic_n` still resolves; rename if needed
-3. Den configuration (last main room)
-4. Second Aqara FP2 for kitchen
-5. Bedroom per-room override switches
-6. "Refresh Lights" Apple Home button
-7. Bare-metal HA migration
-8. Cameras / Frigate
-9. Locks, thermostats, additional sensors
+1. Verify `automation.main_lamps_dynamic_n` still resolves; rename if needed
+2. Den configuration (last main room)
+3. Second Aqara FP2 for kitchen
+4. Bedroom per-room override switches
+5. "Refresh Lights" Apple Home button
+6. Bare-metal HA migration
+7. Cameras / Frigate
+8. Locks, thermostats, additional sensors
 
 ---
 
-*Last updated: May 22, 2026 — initial commit. Update this file whenever architecture or rules change.*
+*Last updated: May 22, 2026 — corrected overhead retrigger claim (time-gated automations don't need retrigger).*
