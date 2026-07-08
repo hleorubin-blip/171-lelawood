@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "skills": {
+    "home-assistant-manager": {
+      "source": "komal-skynet/claude-skill-homeassistant",
+      "sourceType": "github",
+      "skillPath": "skills/home-assistant-manager/SKILL.md",
+      "computedHash": "c56f5e301237adc2feeb9d7a40474bc06d82983d3a28c668daf773d50824a75e"
+    }
+  }
+}
