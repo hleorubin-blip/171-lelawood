@@ -103,6 +103,7 @@ Chosen over Derek Seaman's blueprint and other alternatives. The blueprint handl
 | `light.d26hd` | Leviton Decora | Kitchen overhead |
 | `light.chandelier` | Leviton Decora | Dining chandelier |
 | `light.gym` | Hue / smart plug | Gym light (uses HA stock motion_light blueprint, not Blacky) |
+| `light.hue_white_lamp_16`, `light.hue_white_lamp_16_3` | Hue | Hallway overheads, friendly names "Hall 1"/"Hall 2" — entity IDs predate the rename, **not** `light.hall_1`/`light.hall_2` (verified live 2026-07-08). Targeted individually in Hallway Overhead (custom dim-standby). Both belong in the Hallway area (not yet assigned as of 2026-07-08 — assign in UI). |
 | **`light.silver_lamp`** | — | **Excluded from occupied/vacation looks** |
 
 ### Sensors
@@ -112,6 +113,7 @@ Chosen over Derek Seaman's blueprint and other alternatives. The blueprint handl
 | Living room presence + lux | `binary_sensor.living_room_motion_devices` + `sensor.presence_sensor_fp2_0fdb_light_sensor_light_level` | Aqara FP2 — reports **continuous presence** (no discrete edges) |
 | Kitchen occupancy | `binary_sensor.kitchen_occupancy` | Currently relies on FP2's lux sensor (wrong — second FP2 needed) |
 | Gym motion | `binary_sensor.gym_motion` | First-gen Aqara |
+| Hallway motion | `binary_sensor.hallway_1`, `binary_sensor.hallway_2` | Aqara Zigbee (ZHA), Hallway area, detection interval 2s (minimum) — do not change sensor config |
 
 ### Helpers and controls
 
@@ -187,6 +189,7 @@ Silver lamp excluded. Den deferred.
 - Gym lights (HA stock motion_light blueprint)
 - Good Morning - 5AM
 - Bedroom Wake Up - Weekdays
+- Hallway Overhead (custom YAML three-mode dim-standby — standby/boost: 20%/60% day, 10%/30% evening, off/1% night; not a Blacky instance, has its own time triggers so NOT in the Good Morning retrigger)
 
 ### Known active issues
 | # | Issue | Status |
@@ -260,4 +263,4 @@ Silver lamp excluded. Den deferred.
 
 ---
 
-*Last updated: May 22, 2026 — corrected overhead retrigger claim (time-gated automations don't need retrigger).*
+*Last updated: July 8, 2026 — added Hallway Overhead (custom three-mode dim-standby) and the four hallway entities.*
