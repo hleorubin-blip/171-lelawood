@@ -496,11 +496,11 @@
       transition: 600
   - delay: 00:10:00
   - action: light.turn_on
-    target:
-      entity_id: light.levds_dimmer_c766
     data:
       brightness_pct: 20
       transition: 30
+    target:
+      entity_id: light.bedroom_overhead
   - delay: 01:25:00
   - action: light.turn_on
     target:
@@ -514,7 +514,7 @@
       transition: 300
   - action: light.turn_on
     target:
-      entity_id: light.levds_dimmer_c766
+      entity_id: light.bedroom_overhead
     data:
       brightness_pct: 50
       transition: 300
@@ -531,7 +531,7 @@
       transition: 300
   - action: light.turn_on
     target:
-      entity_id: light.levds_dimmer_c766
+      entity_id: light.bedroom_overhead
     data:
       brightness_pct: 60
       transition: 300
