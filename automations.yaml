@@ -536,3 +536,150 @@
       brightness_pct: 60
       transition: 300
   mode: single
+- id: '1783468800000'
+  alias: Hallway Overhead
+  description: 'Three-mode dim-standby: Day (5AM-sunset) 20% standby / 60% motion
+    boost, Evening (sunset-Good Night) 10% / 30%, Night (good_night ON) off / 1%
+    boost. Custom YAML - pattern not supported by Blacky. Not in the Good Morning
+    retrigger; has its own time triggers (CLAUDE.md rule 8).'
+  triggers:
+  - trigger: state
+    entity_id:
+    - binary_sensor.hallway_1
+    - binary_sensor.hallway_2
+    to: 'on'
+    id: motion
+  # TUNING: if the 2s clear causes boost/dim flapping when someone pauses in the
+  # hallway, add `for: "00:00:05"` to this clear trigger to require sustained
+  # clear before dimming back. Deliberately omitted for v1.
+  - trigger: state
+    entity_id:
+    - binary_sensor.hallway_1
+    - binary_sensor.hallway_2
+    to: 'off'
+    id: clear
+  - trigger: time
+    at: 05:00:00
+    id: mode_shift
+  - trigger: sun
+    event: sunset
+    id: mode_shift
+  - trigger: state
+    entity_id:
+    - input_boolean.input_boolean_good_night
+    to: 'on'
+    id: mode_shift
+  - trigger: state
+    entity_id:
+    - input_boolean.input_boolean_good_night
+    to: 'off'
+    id: mode_shift
+  conditions: []
+  actions:
+  - choose:
+    # Motion on either sensor -> boost both lights to the current mode's level
+    - conditions:
+      - condition: trigger
+        id:
+        - motion
+      sequence:
+      - choose:
+        # Night: good_night ON
+        - conditions:
+          - condition: state
+            entity_id: input_boolean.input_boolean_good_night
+            state: 'on'
+          sequence:
+          - action: light.turn_on
+            target:
+              entity_id:
+              - light.hall_1
+              - light.hall_2
+            data:
+              brightness_pct: 1
+              transition: 1
+        # Day: 5:00 AM -> sunset
+        - conditions:
+          - condition: time
+            after: 05:00:00
+          - condition: sun
+            before: sunset
+          sequence:
+          - action: light.turn_on
+            target:
+              entity_id:
+              - light.hall_1
+              - light.hall_2
+            data:
+              brightness_pct: 60
+              transition: 1
+        # Evening: sunset -> Good Night
+        default:
+        - action: light.turn_on
+          target:
+            entity_id:
+            - light.hall_1
+            - light.hall_2
+          data:
+            brightness_pct: 30
+            transition: 1
+    # Both sensors clear, or a mode boundary -> current mode's standby level
+    - conditions:
+      - condition: or
+        conditions:
+        - condition: trigger
+          id:
+          - mode_shift
+        - condition: and
+          conditions:
+          - condition: trigger
+            id:
+            - clear
+          - condition: state
+            entity_id: binary_sensor.hallway_1
+            state: 'off'
+          - condition: state
+            entity_id: binary_sensor.hallway_2
+            state: 'off'
+      sequence:
+      - choose:
+        # Night: off (Good Night scene also turns lights off - don't fight it,
+        # just ensure the hallway ends up off)
+        - conditions:
+          - condition: state
+            entity_id: input_boolean.input_boolean_good_night
+            state: 'on'
+          sequence:
+          - action: light.turn_off
+            target:
+              entity_id:
+              - light.hall_1
+              - light.hall_2
+            data:
+              transition: 1
+        # Day standby
+        - conditions:
+          - condition: time
+            after: 05:00:00
+          - condition: sun
+            before: sunset
+          sequence:
+          - action: light.turn_on
+            target:
+              entity_id:
+              - light.hall_1
+              - light.hall_2
+            data:
+              brightness_pct: 20
+              transition: 1
+        # Evening standby
+        default:
+        - action: light.turn_on
+          target:
+            entity_id:
+            - light.hall_1
+            - light.hall_2
+          data:
+            brightness_pct: 10
+            transition: 1
+  mode: restart
