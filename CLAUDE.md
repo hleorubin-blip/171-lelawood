@@ -103,7 +103,7 @@ Chosen over Derek Seaman's blueprint and other alternatives. The blueprint handl
 | `light.d26hd` | Leviton Decora | Kitchen overhead |
 | `light.chandelier` | Leviton Decora | Dining chandelier |
 | `light.gym` | Hue / smart plug | Gym light (uses HA stock motion_light blueprint, not Blacky) |
-| `light.hall_1`, `light.hall_2` | Hue | Hallway overheads — targeted individually in Hallway Overhead (custom dim-standby). Both belong in the Hallway area. |
+| `light.hue_white_lamp_16`, `light.hue_white_lamp_16_3` | Hue | Hallway overheads, friendly names "Hall 1"/"Hall 2" — entity IDs predate the rename, **not** `light.hall_1`/`light.hall_2` (verified live 2026-07-08). Targeted individually in Hallway Overhead (custom dim-standby). Both belong in the Hallway area (not yet assigned as of 2026-07-08 — assign in UI). |
 | **`light.silver_lamp`** | — | **Excluded from occupied/vacation looks** |
 
 ### Sensors

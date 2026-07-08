@@ -542,6 +542,9 @@
     boost, Evening (sunset-Good Night) 10% / 30%, Night (good_night ON) off / 1%
     boost. Custom YAML - pattern not supported by Blacky. Not in the Good Morning
     retrigger; has its own time triggers (CLAUDE.md rule 8).'
+  # Hallway lights are Hue bulbs whose entity IDs predate the "Hall 1"/"Hall 2"
+  # renames: Hall 1 = light.hue_white_lamp_16, Hall 2 = light.hue_white_lamp_16_3.
+  # Verified against the live instance 2026-07-08 - do not "fix" to light.hall_*.
   triggers:
   - trigger: state
     entity_id:
@@ -593,8 +596,8 @@
           - action: light.turn_on
             target:
               entity_id:
-              - light.hall_1
-              - light.hall_2
+              - light.hue_white_lamp_16
+              - light.hue_white_lamp_16_3
             data:
               brightness_pct: 1
               transition: 1
@@ -608,8 +611,8 @@
           - action: light.turn_on
             target:
               entity_id:
-              - light.hall_1
-              - light.hall_2
+              - light.hue_white_lamp_16
+              - light.hue_white_lamp_16_3
             data:
               brightness_pct: 60
               transition: 1
@@ -618,8 +621,8 @@
         - action: light.turn_on
           target:
             entity_id:
-            - light.hall_1
-            - light.hall_2
+            - light.hue_white_lamp_16
+            - light.hue_white_lamp_16_3
           data:
             brightness_pct: 30
             transition: 1
@@ -653,8 +656,8 @@
           - action: light.turn_off
             target:
               entity_id:
-              - light.hall_1
-              - light.hall_2
+              - light.hue_white_lamp_16
+              - light.hue_white_lamp_16_3
             data:
               transition: 1
         # Day standby
@@ -667,8 +670,8 @@
           - action: light.turn_on
             target:
               entity_id:
-              - light.hall_1
-              - light.hall_2
+              - light.hue_white_lamp_16
+              - light.hue_white_lamp_16_3
             data:
               brightness_pct: 20
               transition: 1
@@ -677,8 +680,8 @@
         - action: light.turn_on
           target:
             entity_id:
-            - light.hall_1
-            - light.hall_2
+            - light.hue_white_lamp_16
+            - light.hue_white_lamp_16_3
           data:
             brightness_pct: 10
             transition: 1
