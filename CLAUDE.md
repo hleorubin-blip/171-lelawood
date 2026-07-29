@@ -111,9 +111,9 @@ Chosen over Derek Seaman's blueprint and other alternatives. The blueprint handl
 | Sensor | Entity | Notes |
 |---|---|---|
 | Living room presence + lux | `binary_sensor.living_room_motion_devices` + `sensor.presence_sensor_fp2_0fdb_light_sensor_light_level` | Aqara FP2 — reports **continuous presence** (no discrete edges) |
-| Kitchen occupancy | `binary_sensor.kitchen_occupancy` | Currently relies on FP2's lux sensor (wrong — second FP2 needed) |
+| Kitchen motion | `binary_sensor.kitchen_motion` | Motion trigger for Kitchen Overhead and Kitchen Nightlight (replaced `binary_sensor.kitchen_occupancy` 2026-07-29). Kitchen Overhead still reads the **living room** FP2 for lux — second FP2 still needed |
 | Gym motion | `binary_sensor.gym_motion` | First-gen Aqara |
-| Hallway motion | `binary_sensor.hallway_1`, `binary_sensor.hallway_2` | Aqara Zigbee (ZHA), Hallway area, detection interval 2s (minimum) — do not change sensor config |
+| Hallway motion | `binary_sensor.hallway_motion` | Single sensor entity (replaced the `binary_sensor.hallway_1` / `hallway_2` pair 2026-07-29). Aqara Zigbee (ZHA), Hallway area, detection interval 2s (minimum) — do not change sensor config |
 
 ### Helpers and controls
 
@@ -189,13 +189,13 @@ Silver lamp excluded. Den deferred.
 - Gym lights (HA stock motion_light blueprint)
 - Good Morning - 5AM
 - Bedroom Wake Up - Weekdays
-- Hallway Overhead (custom YAML three-mode dim-standby — standby/boost: 20%/60% day, 10%/30% evening, off/1% night; not a Blacky instance, has its own time triggers so NOT in the Good Morning retrigger)
+- Hallway Overhead (custom YAML three-mode dim-standby — standby/boost: 20%/60% day, 5%/30% evening, off/1% night; not a Blacky instance, has its own time triggers so NOT in the Good Morning retrigger)
 
 ### Known active issues
 | # | Issue | Status |
 |---|---|---|
 | 1 | Six Leviton dimmers went unavailable after a power surge (same Matter commissioning batch) | Resolution: verify WiFi via Deco app, breaker cycle if offline; Matter re-interview not in UI |
-| 2 | Kitchen automation incorrectly references living room FP2's lux sensor | Needs second FP2 in kitchen |
+| 2 | Kitchen Overhead still uses the living room FP2's **lux** sensor for dynamic lighting (motion now comes from `binary_sensor.kitchen_motion`) | Needs second FP2 in kitchen |
 | 3 | Existing retrigger targets `automation.main_lamps_dynamic_n` — verify this entity_id still resolves (legacy from rename?) | Needs verification |
 
 ### Deferred
@@ -263,4 +263,4 @@ Silver lamp excluded. Den deferred.
 
 ---
 
-*Last updated: July 8, 2026 — added Hallway Overhead (custom three-mode dim-standby) and the four hallway entities.*
+*Last updated: July 29, 2026 — hallway consolidated to `binary_sensor.hallway_motion`, evening standby 10% → 5%, kitchen automations moved to `binary_sensor.kitchen_motion`.*

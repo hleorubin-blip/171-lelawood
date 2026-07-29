@@ -241,7 +241,7 @@
     path: Blackshome/sensor-light.yaml
     input:
       motion_trigger:
-      - binary_sensor.living_room_motion_devices
+      - binary_sensor.kitchen_motion
       light_switch:
         entity_id: light.d26hd
       time_delay: 30
@@ -362,7 +362,7 @@
     path: Blackshome/sensor-light.yaml
     input:
       motion_trigger:
-      - binary_sensor.kitchen_occupancy
+      - binary_sensor.kitchen_motion
       light_switch:
         entity_id:
         - light.fixture
@@ -539,7 +539,7 @@
 - id: '1783468800000'
   alias: Hallway Overhead
   description: 'Three-mode dim-standby: Day (5AM-sunset) 20% standby / 60% motion
-    boost, Evening (sunset-Good Night) 10% / 30%, Night (good_night ON) off / 1%
+    boost, Evening (sunset-Good Night) 5% / 30%, Night (good_night ON) off / 1%
     boost. Custom YAML - pattern not supported by Blacky. Not in the Good Morning
     retrigger; has its own time triggers (CLAUDE.md rule 8).'
   # Hallway lights are Hue bulbs whose entity IDs predate the "Hall 1"/"Hall 2"
@@ -548,8 +548,7 @@
   triggers:
   - trigger: state
     entity_id:
-    - binary_sensor.hallway_1
-    - binary_sensor.hallway_2
+    - binary_sensor.hallway_motion
     to: 'on'
     id: motion
   # TUNING: if the 2s clear causes boost/dim flapping when someone pauses in the
@@ -557,8 +556,7 @@
   # clear before dimming back. Deliberately omitted for v1.
   - trigger: state
     entity_id:
-    - binary_sensor.hallway_1
-    - binary_sensor.hallway_2
+    - binary_sensor.hallway_motion
     to: 'off'
     id: clear
   - trigger: time
@@ -580,7 +578,7 @@
   conditions: []
   actions:
   - choose:
-    # Motion on either sensor -> boost both lights to the current mode's level
+    # Motion -> boost both lights to the current mode's level
     - conditions:
       - condition: trigger
         id:
@@ -626,7 +624,7 @@
           data:
             brightness_pct: 30
             transition: 1
-    # Both sensors clear, or a mode boundary -> current mode's standby level
+    # Sensor clear, or a mode boundary -> current mode's standby level
     - conditions:
       - condition: or
         conditions:
@@ -639,10 +637,7 @@
             id:
             - clear
           - condition: state
-            entity_id: binary_sensor.hallway_1
-            state: 'off'
-          - condition: state
-            entity_id: binary_sensor.hallway_2
+            entity_id: binary_sensor.hallway_motion
             state: 'off'
       sequence:
       - choose:
@@ -683,6 +678,6 @@
             - light.hue_white_lamp_16
             - light.hue_white_lamp_16_3
           data:
-            brightness_pct: 10
+            brightness_pct: 5
             transition: 1
   mode: restart
