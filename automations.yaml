@@ -157,10 +157,25 @@
   actions:
   - choose:
     - conditions:
-      - condition: trigger
-        id:
-        - morning_on
-        - arrive_on
+      # arrive_on fires when away_mode clears, so it needs no gate. morning_on is
+      # a bare 06:00 time trigger and would otherwise switch these lamps on every
+      # day of a trip, with only the Good Night scene able to switch them back.
+      - condition: or
+        conditions:
+        - condition: trigger
+          id:
+          - arrive_on
+        - condition: and
+          conditions:
+          - condition: trigger
+            id:
+            - morning_on
+          - condition: state
+            entity_id: input_boolean.input_boolean_away_mode
+            state: 'off'
+          - condition: state
+            entity_id: input_boolean.vacation_mode
+            state: 'off'
       sequence:
       - type: turn_on
         device_id: 75ebeb25323fff8d723bb7cda31b6774
@@ -474,6 +489,15 @@
     - wed
     - thu
     - fri
+  # Nothing in this automation ever turns these lights back off - the Good Night
+  # scene does. With nobody home to run it, an ungated ramp leaves the bedroom
+  # lit around the clock, so skip the ramp entirely when away or on vacation.
+  - condition: state
+    entity_id: input_boolean.input_boolean_away_mode
+    state: 'off'
+  - condition: state
+    entity_id: input_boolean.vacation_mode
+    state: 'off'
   actions:
   - action: light.turn_on
     target:
@@ -575,6 +599,16 @@
     - input_boolean.input_boolean_good_night
     to: 'off'
     id: mode_shift
+  - trigger: state
+    entity_id:
+    - input_boolean.vacation_mode
+    to: 'on'
+    id: mode_shift
+  - trigger: state
+    entity_id:
+    - input_boolean.vacation_mode
+    to: 'off'
+    id: mode_shift
   conditions: []
   actions:
   - choose:
@@ -585,6 +619,22 @@
         - motion
       sequence:
       - choose:
+        # Vacation: nobody lives here this week, but a plant-sitter still needs
+        # to see the hallway. Checked before good_night, which is stuck OFF while
+        # away (Good Morning - 5AM clears it daily, nothing sets it).
+        - conditions:
+          - condition: state
+            entity_id: input_boolean.vacation_mode
+            state: 'on'
+          sequence:
+          - action: light.turn_on
+            target:
+              entity_id:
+              - light.hue_white_lamp_16
+              - light.hue_white_lamp_16_3
+            data:
+              brightness_pct: 30
+              transition: 1
         # Night: good_night ON
         - conditions:
           - condition: state
@@ -641,6 +691,20 @@
             state: 'off'
       sequence:
       - choose:
+        # Vacation: no standby glow. The evening look is carried by the living
+        # room lamps; an always-on hallway would just burn for two weeks.
+        - conditions:
+          - condition: state
+            entity_id: input_boolean.vacation_mode
+            state: 'on'
+          sequence:
+          - action: light.turn_off
+            target:
+              entity_id:
+              - light.hue_white_lamp_16
+              - light.hue_white_lamp_16_3
+            data:
+              transition: 1
         # Night: off (Good Night scene also turns lights off - don't fight it,
         # just ensure the hallway ends up off)
         - conditions:
@@ -681,3 +745,254 @@
             brightness_pct: 5
             transition: 1
   mode: restart
+# ---------------------------------------------------------------------------
+# VACATION MODE
+#
+# Gated on input_boolean.vacation_mode (UI helper - create before enabling).
+# Distinct from away_mode: away = short trip, house goes dark. Vacation = house
+# should read as occupied. Vacation turns away_mode ON as its first act, which
+# bypasses every Blacky instance to OFF and gives these automations a clean
+# canvas to paint on - the blueprints and the vacation look never fight over
+# the same lamp.
+#
+# Occupied look is light.brown_lamp + light.guzzini only.
+# light.silver_lamp is deliberately excluded (CLAUDE.md entity topology).
+# ---------------------------------------------------------------------------
+- id: '1788000000001'
+  alias: Vacation Mode - Sync Away Mode
+  description: 'Vacation ON also flips away_mode ON so all Blacky instances bypass
+    to OFF. Vacation OFF releases them. This is the only automation that writes
+    away_mode - everything else reads it.'
+  triggers:
+  - trigger: state
+    entity_id:
+    - input_boolean.vacation_mode
+    to: 'on'
+    id: vacation_on
+  - trigger: state
+    entity_id:
+    - input_boolean.vacation_mode
+    to: 'off'
+    id: vacation_off
+  conditions: []
+  actions:
+  - choose:
+    - conditions:
+      - condition: trigger
+        id:
+        - vacation_on
+      sequence:
+      - action: input_boolean.turn_on
+        target:
+          entity_id: input_boolean.input_boolean_away_mode
+    - conditions:
+      - condition: trigger
+        id:
+        - vacation_off
+      sequence:
+      - action: input_boolean.turn_off
+        target:
+          entity_id: input_boolean.input_boolean_away_mode
+  mode: single
+- id: '1788000000002'
+  alias: Vacation Mode - Exterior Lights
+  description: 'Exterior on at sunset, off at sunrise, while vacation is active.
+    Brightness matches the Good Night scene so the house looks the same from the
+    street as it does on a normal night. Nothing else in this config touches the
+    exterior lights.'
+  triggers:
+  - trigger: sun
+    event: sunset
+    id: dusk
+  - trigger: sun
+    event: sunrise
+    id: dawn
+  conditions:
+  - condition: state
+    entity_id: input_boolean.vacation_mode
+    state: 'on'
+  actions:
+  - choose:
+    - conditions:
+      - condition: trigger
+        id:
+        - dusk
+      sequence:
+      - action: light.turn_on
+        target:
+          entity_id:
+          - light.front_porch
+        data:
+          brightness_pct: 65
+      - action: light.turn_on
+        target:
+          entity_id:
+          - light.front_flood
+        data:
+          brightness_pct: 75
+      - action: light.turn_on
+        target:
+          entity_id:
+          - light.back_porch
+          - light.back_flood
+        data:
+          brightness_pct: 100
+    - conditions:
+      - condition: trigger
+        id:
+        - dawn
+      sequence:
+      - action: light.turn_off
+        target:
+          entity_id:
+          - light.front_porch
+          - light.front_flood
+          - light.back_porch
+          - light.back_flood
+  mode: single
+- id: '1788000000003'
+  alias: Vacation Mode - Evening Lamps
+  description: 'Occupied look: brown lamp + guzzini at 20% from sunset, off at a
+    random point between 23:30 and 00:30 so it does not read as clockwork from the
+    street. Silver lamp excluded.'
+  # mode: single is safe here even though the off branch holds the automation
+  # busy for up to an hour: Nashville sunset never falls inside 23:30-00:30, so
+  # the two branches cannot overlap. Do NOT switch to restart - it would cancel
+  # an in-flight random delay.
+  triggers:
+  - trigger: sun
+    event: sunset
+    id: dusk
+  - trigger: time
+    at: '23:30:00'
+    id: bedtime
+  conditions:
+  - condition: state
+    entity_id: input_boolean.vacation_mode
+    state: 'on'
+  actions:
+  - choose:
+    - conditions:
+      - condition: trigger
+        id:
+        - dusk
+      sequence:
+      - action: light.turn_on
+        target:
+          entity_id:
+          - light.brown_lamp
+          - light.guzzini
+        data:
+          brightness_pct: 20
+          transition: 2
+    - conditions:
+      - condition: trigger
+        id:
+        - bedtime
+      sequence:
+      # 0-60 min of jitter on top of 23:30
+      - delay:
+          seconds: '{{ range(0, 3601) | random }}'
+      # Re-check: the delay can outlive vacation mode being switched off.
+      - condition: state
+        entity_id: input_boolean.vacation_mode
+        state: 'on'
+      - action: light.turn_off
+        target:
+          entity_id:
+          - light.brown_lamp
+          - light.guzzini
+        data:
+          transition: 4
+  mode: single
+- id: '1788000000004'
+  alias: Vacation Mode - Motion Override
+  description: 'Whoever is watering the plants gets usable light for 30 minutes,
+    then the house returns to its vacation baseline. Overheads only while the sun
+    is up - after sunset this stays lamps-only so the house keeps its evening look.'
+  # TUNING: the FP2 reports continuous presence, so a visitor who stays put past
+  # 30 min gets dropped until they move past the kitchen or hallway sensor. If
+  # that proves annoying, raise the delay rather than adding a second timer.
+  triggers:
+  - trigger: state
+    entity_id:
+    - binary_sensor.living_room_motion_devices
+    - binary_sensor.kitchen_motion
+    - binary_sensor.hallway_motion
+    to: 'on'
+  conditions:
+  - condition: state
+    entity_id: input_boolean.vacation_mode
+    state: 'on'
+  actions:
+  - action: light.turn_on
+    target:
+      entity_id:
+      - light.brown_lamp
+      - light.guzzini
+    data:
+      brightness_pct: 60
+      transition: 1
+  # Daytime only: give them the kitchen overhead too.
+  - if:
+    - condition: sun
+      before: sunset
+      after: sunrise
+    then:
+    - action: light.turn_on
+      target:
+        entity_id: light.d26hd
+      data:
+        brightness_pct: 60
+  - delay: 00:30:00
+  - condition: state
+    entity_id: input_boolean.vacation_mode
+    state: 'on'
+  - action: light.turn_off
+    target:
+      entity_id: light.d26hd
+  # Restore the baseline: evening look between sunset and 23:30, otherwise dark.
+  - if:
+    - condition: sun
+      after: sunset
+    - condition: time
+      before: '23:30:00'
+    then:
+    - action: light.turn_on
+      target:
+        entity_id:
+        - light.brown_lamp
+        - light.guzzini
+      data:
+        brightness_pct: 20
+        transition: 4
+    else:
+    - action: light.turn_off
+      target:
+        entity_id:
+        - light.brown_lamp
+        - light.guzzini
+      data:
+        transition: 4
+  mode: restart
+- id: '1788000000005'
+  alias: Vacation Mode - Deactivation Cleanup
+  description: 'Vacation OFF: clear the exterior and the occupied-look lamps. The
+    interior blueprints resume on their own once Sync Away Mode releases away_mode.'
+  triggers:
+  - trigger: state
+    entity_id:
+    - input_boolean.vacation_mode
+    to: 'off'
+  conditions: []
+  actions:
+  - action: light.turn_off
+    target:
+      entity_id:
+      - light.front_porch
+      - light.front_flood
+      - light.back_porch
+      - light.back_flood
+      - light.brown_lamp
+      - light.guzzini
+  mode: single

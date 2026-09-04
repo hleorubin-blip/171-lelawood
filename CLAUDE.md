@@ -104,6 +104,7 @@ Chosen over Derek Seaman's blueprint and other alternatives. The blueprint handl
 | `light.chandelier` | Leviton Decora | Dining chandelier |
 | `light.gym` | Hue / smart plug | Gym light (uses HA stock motion_light blueprint, not Blacky) |
 | `light.hue_white_lamp_16`, `light.hue_white_lamp_16_3` | Hue | Hallway overheads, friendly names "Hall 1"/"Hall 2" — entity IDs predate the rename, **not** `light.hall_1`/`light.hall_2` (verified live 2026-07-08). Targeted individually in Hallway Overhead (custom dim-standby). Both belong in the Hallway area (not yet assigned as of 2026-07-08 — assign in UI). |
+| `light.front_porch`, `light.back_porch`, `light.front_flood`, `light.back_flood` | Exterior | Only appeared in the Good Night scene until 2026-09-04 — no automation referenced them. Now driven by Vacation Mode - Exterior Lights. **Entity IDs taken from `scenes.yaml`, not verified live.** |
 | **`light.silver_lamp`** | — | **Excluded from occupied/vacation looks** |
 
 ### Sensors
@@ -120,7 +121,8 @@ Chosen over Derek Seaman's blueprint and other alternatives. The blueprint handl
 | Helper | Purpose |
 |---|---|
 | `input_boolean.input_boolean_good_night` | Gates all night behavior. Flipped ON by Good Night scene, OFF by Good Morning 5AM automation. **The double-prefix in the entity ID is NOT a bug — do not assume it should be `input_boolean.good_night`.** |
-| `input_boolean.input_boolean_away_mode` | Bypass for all blueprints (Turn Lights OFF). |
+| `input_boolean.input_boolean_away_mode` | Bypass for all blueprints (Turn Lights OFF). Written only by Vacation Mode - Sync Away Mode; otherwise flipped by hand. |
+| `input_boolean.vacation_mode` | Gates vacation mode. **UI helper — note this one has NO double prefix**, unlike `good_night` and `away_mode`. Create as Helper → Toggle named `Vacation Mode`. |
 | `scene.good_night` | Apple Home / Siri-triggered. Flips `good_night` ON, turns off overheads and non-nightlight lamps. |
 
 ---
@@ -149,15 +151,36 @@ Chosen over Derek Seaman's blueprint and other alternatives. The blueprint handl
 
 ## Vacation mode
 
-Designed for a family member to visit and water plants while Leo is away. Six automations:
-1. Sync to `away_mode`
-2. Exterior lights on at sunset
-3. Exterior lights off at sunrise
-4. Occupied lamp look at 20% sunset to midnight
-5. Motion override (30-min timer, mode: restart, no overheads after sunset during trigger)
-6. Deactivation cleanup
+**Built 2026-09-04.** Previously this section described a design that was never implemented — no `vacation` automations existed in `automations.yaml`. Now five automations plus three gating fixes.
 
-Silver lamp excluded. Den deferred.
+Distinct from `away_mode`: **away = short trip, house goes dark. Vacation = house should read as occupied.** Vacation flips `away_mode` ON as its first act, which bypasses every Blacky instance to OFF and gives the vacation automations a clean canvas — the blueprints and the vacation look never contend for the same lamp.
+
+### The five automations
+
+| # | Automation | Behavior |
+|---|---|---|
+| 1 | Vacation Mode - Sync Away Mode | Vacation ON → `away_mode` ON; OFF → OFF. **The only automation that writes `away_mode`** — everything else reads it. |
+| 2 | Vacation Mode - Exterior Lights | Sunset on / sunrise off. Brightness matches the Good Night scene (front porch 65%, front flood 75%, back porch + flood 100%). |
+| 3 | Vacation Mode - Evening Lamps | `light.brown_lamp` + `light.guzzini` at 20% from sunset, off at a **random point between 23:30 and 00:30** so it doesn't read as clockwork. |
+| 4 | Vacation Mode - Motion Override | Any of the three motion sensors → lamps to 60% for 30 min, then restore baseline. Kitchen overhead only while the sun is up. `mode: restart`. |
+| 5 | Vacation Mode - Deactivation Cleanup | Vacation OFF → clear exterior + occupied-look lamps. Interior blueprints resume via #1. |
+
+### Gating fixes shipped alongside
+
+Three automations had no away/vacation gate and would have run away with the house empty:
+
+| Automation | Was | Now |
+|---|---|---|
+| Bedroom Wake Up - Weekdays | Fired 4:50 AM Mon–Fri and ramped to 80% / 60%. **Nothing in it ever turns the lights off** — only the Siri-triggered Good Night scene does. Left the bedroom lit 24/7 from the first weekday away. | Skipped when `away_mode` OR `vacation_mode` is on |
+| Sitting Room Lamps | Bare 06:00 trigger with `conditions: []` — switched on daily during a trip, off only via Good Night scene or `away_mode`→ON. `away_mode` did **not** survive it. | 06:00 branch gated; `arrive_on` branch deliberately left ungated |
+| Hallway Overhead | No away gate at all — held 20% day / 5% evening standby indefinitely, never reaching night mode (`good_night` is cleared daily by Good Morning - 5AM and nothing sets it) | Vacation branch first in both `choose` blocks: motion → 30%, standby → **off** |
+
+### Notes
+
+- `light.silver_lamp` excluded from the occupied look (per entity topology).
+- Vacation branches are checked **before** `good_night` in Hallway Overhead — `good_night` is stuck OFF during a trip, so a `good_night`-first ordering would never reach the vacation case.
+- `Gym lights` (stock `motion_light` blueprint) has no bypass input and stays motion-driven during vacation. Deliberate — a visitor walking through gets light.
+- Den deferred.
 
 ---
 
@@ -173,6 +196,8 @@ Silver lamp excluded. Den deferred.
 6. **Never add automations to "fix" what the blueprint already handles internally.** Bypass switches handle overrides. Whole-home scenes are reserved for Good Night and Away.
 7. **Never assume `input_boolean.input_boolean_good_night` is an error** — the double-prefix is the actual entity ID.
 8. **Never add time-gated automations to the Good Morning retrigger.** Blacky's blueprint handles their morning transition via its internal time trigger. Only state_control-gated automations with no time fallback need the retrigger.
+9. **Never add a bare time-triggered automation without an away/vacation gate.** Bedroom Wake Up and Sitting Room Lamps both ran away with an empty house because a `time` trigger fires whether or not anyone is home, and neither had an off step. If an automation turns lights on by clock, it needs either a gate or its own off step.
+10. **Never assume `input_boolean.vacation_mode` has a double prefix.** `good_night` and `away_mode` do; `vacation_mode` does not.
 
 ---
 
@@ -189,7 +214,10 @@ Silver lamp excluded. Den deferred.
 - Gym lights (HA stock motion_light blueprint)
 - Good Morning - 5AM
 - Bedroom Wake Up - Weekdays
-- Hallway Overhead (custom YAML three-mode dim-standby — standby/boost: 20%/60% day, 5%/30% evening, off/1% night; not a Blacky instance, has its own time triggers so NOT in the Good Morning retrigger)
+- Hallway Overhead (custom YAML dim-standby — standby/boost: 20%/60% day, 5%/30% evening, off/1% night, off/30% vacation; not a Blacky instance, has its own time triggers so NOT in the Good Morning retrigger)
+
+### Written but not yet verified on hardware
+- Vacation mode (5 automations + 3 gating fixes, committed 2026-09-04). **Requires `input_boolean.vacation_mode` to be created in the UI first** — the automations reference an entity that does not exist yet and will error until it does. Exterior light entity IDs need a live check.
 
 ### Known active issues
 | # | Issue | Status |
@@ -197,6 +225,8 @@ Silver lamp excluded. Den deferred.
 | 1 | Six Leviton dimmers went unavailable after a power surge (same Matter commissioning batch) | Resolution: verify WiFi via Deco app, breaker cycle if offline; Matter re-interview not in UI |
 | 2 | Kitchen Overhead still uses the living room FP2's **lux** sensor for dynamic lighting (motion now comes from `binary_sensor.kitchen_motion`) | Needs second FP2 in kitchen |
 | 3 | Existing retrigger targets `automation.main_lamps_dynamic_n` — verify this entity_id still resolves (legacy from rename?) | Needs verification |
+| 4 | `input_boolean.vacation_mode` does not exist yet — create as Helper → Toggle named `Vacation Mode`, then confirm the entity ID has no double prefix | Blocks vacation mode |
+| 5 | Exterior light entity IDs (`light.front_porch`, `back_porch`, `front_flood`, `back_flood`) sourced from `scenes.yaml`, never verified against the live instance | Needs verification |
 
 ### Deferred
 - Den configuration
@@ -252,15 +282,16 @@ Silver lamp excluded. Den deferred.
 
 ## Roadmap (in rough order)
 
-1. Verify `automation.main_lamps_dynamic_n` still resolves; rename if needed
-2. Den configuration (last main room)
-3. Second Aqara FP2 for kitchen
-4. Bedroom per-room override switches
-5. "Refresh Lights" Apple Home button
-6. Bare-metal HA migration
-7. Cameras / Frigate
-8. Locks, thermostats, additional sensors
+1. Create `input_boolean.vacation_mode` helper and verify exterior entity IDs, then test vacation mode
+2. Verify `automation.main_lamps_dynamic_n` still resolves; rename if needed
+3. Den configuration (last main room)
+4. Second Aqara FP2 for kitchen
+5. Bedroom per-room override switches
+6. "Refresh Lights" Apple Home button
+7. Bare-metal HA migration
+8. Cameras / Frigate
+9. Locks, thermostats, additional sensors
 
 ---
 
-*Last updated: July 29, 2026 — hallway consolidated to `binary_sensor.hallway_motion`, evening standby 10% → 5%, kitchen automations moved to `binary_sensor.kitchen_motion`.*
+*Last updated: September 4, 2026 — vacation mode built (5 automations); Bedroom Wake Up, Sitting Room Lamps and Hallway Overhead gated on away/vacation; exterior lights documented.*
