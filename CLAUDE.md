@@ -135,8 +135,12 @@ Chosen over Derek Seaman's blueprint and other alternatives. The blueprint handl
 
 ### Good Morning
 - `automation.good_morning_5am` — fires at 5 AM, flips `good_night` OFF, then triggers retrigger
-- `automation.good_morning_retrigger_daytime_lamps` — targets `automation.main_lamps_dynamic_n`
-- **Why the retrigger exists:** The FP2 reports continuous presence and never produces discrete off→on edges. State_control-gated automations (like Main Lamps) won't re-fire when `good_night` flips OFF without an explicit `automation.trigger` call.
+- `automation.good_morning_retrigger_daytime_lamps` — restores the 9 lamps shared between Main Lamps and Lamps Nightlight (Oct 28 2026 rewrite)
+  - Trigger: `good_night` on → off. Mode: restart.
+  - Waits 15s, then turns on brown, silver, guzzini, parquet, square, thin, big, hue_white_lamp_15, small lamps at 65% (sun elevation < 1) or 100% (else), mirroring Main Lamps' night-lights rule
+  - Only acts if `binary_sensor.living_room_occupancy_status` is on, `automation.main_lamps_dynamic_n` is still running (`current` > 0, meaning Blacky decided the lamps should be on), and Away is off
+- **Why the retrigger exists:** If the room is occupied before 5 AM, Lamps Nightlight is running when `good_night` flips OFF. Main Lamps turns all lamps on, then ~1s later Lamps Nightlight's state control deactivates and turns its 9 lamps off. Main Lamps thinks they're on and waits for occupancy to clear; continuous presence means no new edge re-fires it. The 15s delay clears the nightlight's 8s fade. Expect a brief off/on blink at 5 AM when the room is occupied.
+- **Do not use `automation.trigger` on Blacky instances.** Blacky's conditions check trigger IDs; a manual trigger has none and always ends in `failed_conditions`. The previous retrigger did this and never worked.
 - **Why overheads don't need it:** Time-gated automations (like Main Overhead Dynamic, with `after_time: 05:00:00`) get re-evaluated by Blacky's blueprint internal time trigger at the configured `after_time`. No retrigger needed.
 - **Rule for future automations:** Add to the retrigger only if the automation is state_control-gated AND has no `after_time`/`before_time` fallback.
 
@@ -196,7 +200,7 @@ Silver lamp excluded. Den deferred.
 |---|---|---|
 | 1 | Six Leviton dimmers went unavailable after a power surge (same Matter commissioning batch) | Resolution: verify WiFi via Deco app, breaker cycle if offline; Matter re-interview not in UI |
 | 2 | Kitchen Overhead still uses the living room FP2's **lux** sensor for dynamic lighting (motion now comes from `binary_sensor.kitchen_motion`) | Needs second FP2 in kitchen |
-| 3 | Existing retrigger targets `automation.main_lamps_dynamic_n` — verify this entity_id still resolves (legacy from rename?) | Needs verification |
+| 3 | `automation.main_lamps_dynamic_n` resolves (friendly name "Lamps", alias "Main Lamps"); retrigger rewritten Oct 28 2026 | Resolved |
 
 ### Deferred
 - Den configuration
