@@ -1,3 +1,5 @@
+> **ARCHIVED Oct 28 2026.** Out of date. See README.md.
+
 # 171 Lelawood — Home Assistant Config
 
 > **For future Claude instances:** This file is the source of truth for how this system is architected, what's already been decided, and what NOT to do. Read it before suggesting changes. Update it when architecture decisions change.
